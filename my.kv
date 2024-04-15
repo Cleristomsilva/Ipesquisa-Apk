@@ -1,0 +1,227 @@
+<CreateAccountWindow>:
+    name: "create"
+    email: email
+    password: passw
+
+    FloatLayout:
+        cols: 1
+
+
+        FloatLayout:
+            size: root.width, root.height/2
+
+
+            Label:
+                text: "Crie seu acesso"
+                font_size: 24  # Tamanho de fonte fixo
+                size_hint: 0.8, 0.2
+                pos_hint: {"x": 0.1, "top": 1}
+
+            Label:
+                pos_hint: {"x": 0, "y": 0.98-0.10*2}
+                text: "Digite seu Email: "
+                font_size: 18  # Tamanho de fonte fixo
+                size_hint_y: None
+                height: 10
+                font_name:'open-sans.regular.ttf'
+            TextInput:
+                id: email
+                font_size: 16  # Tamanho de fonte fixo
+                multiline: False
+                size_hint: None, None
+                size: dp(260), dp(40)
+                pos_hint: {"center_x": 0.5, "y": 0.88-0.10*2}
+                font_name:'open-sans.regular.ttf'
+            Label:
+                pos_hint: {"x": 0, "y": 0.80-0.10*2}
+                font_size: 18  # Tamanho de fonte fixo
+                size_hint_y: None
+                height: 10
+                font_name:'open-sans.regular.ttf'
+                text: "Crie uma Senha: "
+            TextInput:
+                size_hint: None, None
+                size: dp(260), dp(40)
+                pos_hint: {"center_x": 0.5, "y": 0.70-0.10*2}
+                id: passw
+                multiline: False
+                password: True
+                font_size: 16
+            Button:
+                pos_hint: {"x": 0.13, "y": 0.22}
+                size_hint: 0.7, 0.1
+                font_size: 14  # Tamanho de fonte fixo
+                text: "Você ja tem uma conta?\n       Volte ao Login"
+                on_release:
+                    root.manager.transition.direction = "left"
+                    root.login()
+            Button:
+                pos_hint: {"x": 0.13, "y": 0.1}
+                size_hint: 0.7, 0.1
+                text: "Registrar"
+                font_size: (root.width**2 + root.height**2) / 12**4
+                on_release:
+                    root.manager.transition.direction = "left"
+                    root.submit()
+
+<LoginWindow>:
+    name: "login"
+    email: email
+    password: password
+    font_name:'open-sans.italic.ttf'
+    save_email_switch: save_email_switch  # Adicione esta linha
+
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 50
+        spacing: 20
+
+        Label:
+            text: "Email: "
+            font_size: 26  # Tamanho de fonte fixo
+            size_hint_y: None
+            height: 10
+            font_name:'open-sans.regular.ttf'
+
+        TextInput:
+            id: email
+            font_size: 16  # Tamanho de fonte fixo
+            multiline: False
+            size_hint: None, None
+            size: dp(260), dp(40)
+            pos_hint: {"center_x": 0.5}
+            font_name:'open-sans.regular.ttf'
+
+
+
+        Label:
+            text: "Senha: "
+            font_size: 26  # Tamanho de fonte fixo
+            size_hint_y: None
+            size: dp(260), dp(40)
+            height: 10
+            font_name:'open-sans.regular.ttf'
+
+        TextInput:
+            id: password
+            font_size: 16  # Tamanho de fonte fixo
+            multiline: False
+            password: True
+            size_hint: None, None
+            size: dp(260), dp(40)
+            pos_hint: {"center_x": 0.5}
+            font_name:'open-sans.regular.ttf'
+
+        Label:
+            text: "Salvar email"
+            size_hint_y: None
+            size: dp(260), dp(40)
+            height: 8
+            font_size: 16  # Tamanho de fonte fixo
+            font_name:'open-sans.regular.ttf'
+
+        Switch:
+            size_hint_y: None
+            size: dp(260), dp(40)
+            height: 8
+            id: save_email_switch
+            active: True  # Define o estado inicial do switch
+
+        Label:
+            text: ""
+            font_size: 5  # Tamanho de fonte fixo
+            size_hint_y: None
+            size: dp(260), dp(1)
+            height: 1
+
+        Button:
+            text: "Login"
+            size_hint: None, None
+            size: dp(260), dp(40)
+            pos_hint: {"center_x": 0.5}
+            font_size: 24  # Tamanho de fonte fixo
+            font_name: 'open-sans.regular.ttf'
+            on_release: root.salvar_email_toggle(save_email_switch); root.manager.transition.direction = "up"; root.loginBtn()
+
+
+        Button:
+            text: "Não tenho conta."
+            size_hint: None, None
+            size: dp(260), dp(40)
+            pos_hint: {"center_x": 0.5}
+            font_size: 18  # Tamanho de fonte fixo
+            font_name:'open-sans.regular.ttf'
+
+            on_release:
+                root.manager.transition.direction = "right"
+                root.createBtn()
+
+        FloatLayout:
+            Image:
+                source: 'ipesquisa2.png'
+                size_hint: None, None
+                size: dp(100), dp(100)
+                pos_hint: {"center_x": 0.5, "y": -0.1}
+
+
+<MainWindow>:
+    name: "second"
+
+    BoxLayout:
+        orientation: "vertical"
+        padding: 50
+
+
+        Label:
+            id: tema_label  # Adicionando um id para referência no Python
+            text: "Tema Escuro"
+            font_name: 'open-sans.semibold.ttf'
+            size_hint: None, None
+            size: dp(10), dp(10)
+            pos_hint: {"center_x": 0.8}
+        Switch:
+            id: switch
+            pos_hint: {"x": 0.3, "top": 0}
+            active: True
+            on_active: root.atualizar_tema_label(*args)  # Chamando o método para atualizar o texto do tema
+            on_active: root.tema_fundo(*args)
+
+        Button:
+            text: "Nova Pesquisa"
+            font_name: 'open-sans.regular.ttf'
+            on_release: root.nova_pesquisa()
+
+        Button:
+            text: "Exportar Dados"
+            font_name: 'open-sans.regular.ttf'
+            on_release: root.export_data()
+
+        Button:
+            text: "Apagar backup"
+            font_name: 'open-sans.regular.ttf'
+            on_release: root.delete_data()
+
+        Button:
+            text: "Visualizar votos"
+            font_name: 'open-sans.regular.ttf'
+            on_release: root.visualizar_votos()
+
+        Button:
+            text: "Sair"
+            font_name: 'open-sans.regular.ttf'
+            on_release: root.logout()
+
+<Color>:
+    texto_branco: [1, 1, 1, 1]  # Cor branca
+    texto_preto: [0, 0, 0, 1]  # Cor preta
+
+
+<PesquisaWindow>:
+    BoxLayout:
+        orientation: "vertical"
+        padding: 50
+        font_name:'open-sans.regular.ttf'
+
+
+
