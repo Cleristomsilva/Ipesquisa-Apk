@@ -158,10 +158,7 @@ class LoginWindow(Screen):
         self.connection.commit()
         self.connection.close()
         print("Ultimo usuario deletado com sucesso")
-    #
-    # def on_leave(self):
-    #     # Fecha a conexão com o banco de dados ao sair da tela de login
-    #     App.get_running_app().close_connection()
+    
     def loginBtn(self):
         email = self.email.text.strip()
         password = self.password.text.strip()
@@ -220,16 +217,7 @@ class MainWindow(Screen):
             print("logout clicado chamando carregar_ultimo_usuario")
             sm.current_screen.carregar_ultimo_usuario()
 
-    # def carregar_ultimo_usuario(self):
-    #     self.connection = sqlite3.connect('ultimo_usuario.db')
-    #     cursor = self.connection.cursor()
-    #     cursor.execute("SELECT email FROM ultimo_usuario")
-    #     row = cursor.fetchone()
-    #     print("carregar_ultimo_usuario:", row)
-    #     if row is not None:
-    #         print("email:", row[0])
-    #         self.email.text = row[0]
-    #         self.connection.close()
+
 
     def deletar_ultimo_usuario(self):
         print("deletar_ultimo_usuario 236")
@@ -404,21 +392,7 @@ class MainWindow(Screen):
 #ok
 
 
-
     def add_filter_buttons(self):
-        # # Botão para filtrar por idade
-        # btn_idade=Button(text='Filtrar por Idade',size_hint=(None,None),size=(150,40))
-        # btn_idade.bind(on_release=self.show_idade_dropdown)
-        #
-        # # Botão para filtrar por gênero
-        # btn_genero=Button(text='Filtrar por Gênero',size_hint=(None,None),size=(150,40))
-        # btn_genero.bind(on_release=self.show_genero_dropdown)
-        #
-        # # Adiciona os botões ao layout
-        # layout=BoxLayout(orientation='horizontal')
-        # layout.add_widget(btn_idade)
-        # layout.add_widget(btn_genero)
-
         plt.gca().figure.canvas.manager.toolbar.pan()
         plt.gca().figure.canvas.manager.toolbar.zoom()
         plt.gca().figure.canvas.manager.toolbar.home()
@@ -674,7 +648,6 @@ class PesquisaWindow(Screen):
         plt.show()
 #ok
 
-
 class WindowManager(ScreenManager):
     pass
 #ok
@@ -722,14 +695,10 @@ for screen in screens:
 
 sm.current = "login"
 
-
-
 class MyMainApp(App):
     def build(self):
         self.conn=sqlite3.connect('ultimo_usuario.db')
         return sm
-
-
 
 if __name__ == "__main__":
     MyMainApp().run()
