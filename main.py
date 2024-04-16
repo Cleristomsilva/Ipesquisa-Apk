@@ -5,7 +5,6 @@ Config.set('graphics', 'height', '560')  # Definindo a altura da janela como 640
 import sqlite3
 import pytz
 import configparser
-import os
 from kivy.app import App
 from kivy.core.window import Window
 from kivy.lang import Builder
@@ -71,11 +70,11 @@ class CreateAccountWindow(Screen):
                         )
                     self.connection.commit()
                     self.connection.close()
+                    App.get_running_app().root.get_screen("login").email.text=self.email.text
                     print("Dados inseridos com sucesso")
                     sm.current="login"
                 except sqlite3.Error as e:
                     print("Erro ao inserir dados:",e)
-                    # Trate o erro conforme necessário
             else:
                 invalidForm(sm)
         else:
