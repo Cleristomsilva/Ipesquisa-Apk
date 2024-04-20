@@ -1,7 +1,3 @@
-# from kivy.config import Config
-# Config.set('graphics', 'width', '280')  # Definindo a largura da janela como 360 pixels
-# Config.set('graphics', 'height', '540')  # Definindo a altura da janela como 640 pixels
-
 import sqlite3
 
 import configparser
@@ -601,8 +597,6 @@ for screen in screens:
     sm.add_widget(screen)
 
 sm.current = "login"
-
-
 
 class MyMainApp(App):
     def build(self):
