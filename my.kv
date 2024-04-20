@@ -2,67 +2,92 @@
     name: "create"
     email: email
     password: passw
+    check_registrar: check_registrar
 
-    FloatLayout:
-        cols: 1
+    BoxLayout:
+        orientation: "vertical"
+        font_name: 'open-sans.regular.ttf'
+        padding: [0, 50, 0, 0]  # Adicionando um espaço de 50 pixels no topo
 
-
-        FloatLayout:
-            size: root.width, root.height/2
-
+        GridLayout:
+            id: layout
+            cols: 1
+            spacing: 10
+            padding: 10
 
             Label:
                 text: "Crie seu acesso"
-                font_size: 24  # Tamanho de fonte fixo
-                size_hint: 0.8, 0.2
-                pos_hint: {"x": 0.1, "top": 1}
+                font_size: 24
+                size_hint_y: None
+                height: 60
+                font_name: 'open-sans.regular.ttf'
 
             Label:
-                pos_hint: {"x": 0, "y": 0.98-0.10*2}
                 text: "Digite seu Email: "
-                font_size: 18  # Tamanho de fonte fixo
+                font_size: 18
                 size_hint_y: None
-                height: 10
-                font_name:'open-sans.regular.ttf'
+                height: 40
+                font_name: 'open-sans.regular.ttf'
+
             TextInput:
                 id: email
-                font_size: 16  # Tamanho de fonte fixo
+                font_size: 16
                 multiline: False
-                size_hint: None, None
-                size: dp(260), dp(40)
-                pos_hint: {"center_x": 0.5, "y": 0.88-0.10*2}
-                font_name:'open-sans.regular.ttf'
-            Label:
-                pos_hint: {"x": 0, "y": 0.80-0.10*2}
-                font_size: 18  # Tamanho de fonte fixo
                 size_hint_y: None
-                height: 10
-                font_name:'open-sans.regular.ttf'
+                height: 40
+                font_name: 'open-sans.regular.ttf'
+
+            Label:
                 text: "Crie uma Senha: "
+                font_size: 18
+                size_hint_y: None
+                height: 40
+                font_name: 'open-sans.regular.ttf'
+
             TextInput:
-                size_hint: None, None
-                size: dp(260), dp(40)
-                pos_hint: {"center_x": 0.5, "y": 0.70-0.10*2}
                 id: passw
+                size_hint_y: None
+                height: 40
+                font_name: 'open-sans.regular.ttf'
                 multiline: False
                 password: True
                 font_size: 16
+
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint_y: None
+                height: 30
+
+                CheckBox:
+                    id: check_registrar
+                    size_hint: None, None
+                    size: 20, 40
+                    active: False
+                    on_active: root.exibir_senha_registrar(check_registrar)
+
+                Label:
+                    text: "Exibir senha"
+                    size_hint: None, None
+                    size: 80, 40
+                    font_size: 12
+                    font_name: 'open-sans.regular.ttf'
+
             Button:
-                pos_hint: {"x": 0.13, "y": 0.22}
-                size_hint: 0.7, 0.1
-                font_size: 14  # Tamanho de fonte fixo
                 text: "Você ja tem uma conta?\n       Volte ao Login"
-                on_release:
-                    root.manager.transition.direction = "left"
-                    root.login()
+                font_size: 14
+                size_hint_y: None
+                height: 40
+                font_name: 'open-sans.regular.ttf'
+                on_release:root.manager.transition.direction = "left";root.login()
+
             Button:
-                pos_hint: {"x": 0.13, "y": 0.1}
-                size_hint: 0.7, 0.1
                 text: "Registrar"
-                font_size: (root.width**2 + root.height**2) / 12**4
-                on_release:
-                    root.manager.transition.direction = "left"
-                    root.submit()
+                font_size: 20
+                size_hint_y: None
+                height: 40
+                font_name: 'open-sans.regular.ttf'
+                on_press: root.submit()
+
 
 <LoginWindow>:
     name: "login"
@@ -73,96 +98,99 @@
 
 
     BoxLayout:
-        orientation: 'vertical'
-        padding: 50
-        spacing: 20
-
-        Label:
-            text: "Email: "
-            font_size: 26  # Tamanho de fonte fixo
-            size_hint_y: None
-            height: 10
-            font_name:'open-sans.regular.ttf'
-
-        TextInput:
-            id: email
-            font_size: 16  # Tamanho de fonte fixo
-            multiline: False
-            size_hint: None, None
-            size: dp(260), dp(40)
-            pos_hint: {"center_x": 0.5}
-            font_name:'open-sans.regular.ttf'
+        orientation: "vertical"
+        font_name: 'open-sans.regular.ttf'
+        padding: [0, 50, 0, 0]  # Adicionando um espaço de 50 pixels no topo
 
 
+        GridLayout:
+            id: layout
+            cols: 1
+            spacing: 10
+            padding: 10
 
-        Label:
-            text: "Senha: "
-            font_size: 26  # Tamanho de fonte fixo
-            size_hint_y: None
-            size: dp(260), dp(40)
-            height: 10
-            font_name:'open-sans.regular.ttf'
+            Label:
+                text: "Email: "
+                font_size: 26
+                size_hint_y: None
+                height: 40
+                font_name: 'open-sans.regular.ttf'
 
-        TextInput:
-            id: password
-            font_size: 16  # Tamanho de fonte fixo
-            multiline: False
-            password: True
-            size_hint: None, None
-            size: dp(260), dp(40)
-            pos_hint: {"center_x": 0.5}
-            font_name:'open-sans.regular.ttf'
+            TextInput:
+                id: email
+                font_size: 16
+                multiline: False
+                size_hint_y: None
+                height: 40
+                size_hint_x: 0.8  # Definindo uma proporção para o tamanho em relação à largura da tela
+                pos_hint: {"center_x": 0.5}
+                font_name: 'open-sans.regular.ttf'
 
-        Label:
-            text: "Salvar email"
-            size_hint_y: None
-            size: dp(260), dp(40)
-            height: 8
-            font_size: 16  # Tamanho de fonte fixo
-            font_name:'open-sans.regular.ttf'
+            Label:
+                text: "Senha: "
+                font_size: 26
+                size_hint_y: None
+                height: 40
+                font_name: 'open-sans.regular.ttf'
 
-        Switch:
-            size_hint_y: None
-            size: dp(260), dp(40)
-            height: 8
-            id: save_email_switch
-            active: True  # Define o estado inicial do switch
+            TextInput:
+                id: password
+                font_size: 16
+                multiline: False
+                password: True
+                size_hint_y: None
+                height: 40
+                size_hint_x: 0.8  # Definindo uma proporção para o tamanho em relação à largura da tela
+                pos_hint: {"center_x": 0.5}
+                font_name: 'open-sans.regular.ttf'
 
-        Label:
-            text: ""
-            font_size: 5  # Tamanho de fonte fixo
-            size_hint_y: None
-            size: dp(260), dp(1)
-            height: 1
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint_y: None
+                height: 30
 
-        Button:
-            text: "Login"
-            size_hint: None, None
-            size: dp(260), dp(40)
-            pos_hint: {"center_x": 0.5}
-            font_size: 24  # Tamanho de fonte fixo
-            font_name: 'open-sans.regular.ttf'
-            on_release: root.salvar_email_toggle(save_email_switch); root.manager.transition.direction = "up"; root.loginBtn()
+                CheckBox:
+                    id: save_email_switch
+                    size_hint: None, None
+                    size: 20, 40
+                    active: False
+                    on_active: root.exibir_senha(save_email_switch)
 
+                Label:
+                    text: "Exibir senha"
+                    size_hint: None, None
+                    size: 80, 40
+                    font_size: 12
+                    font_name: 'open-sans.regular.ttf'
 
-        Button:
-            text: "Não tenho conta."
-            size_hint: None, None
-            size: dp(260), dp(40)
-            pos_hint: {"center_x": 0.5}
-            font_size: 18  # Tamanho de fonte fixo
-            font_name:'open-sans.regular.ttf'
+            Button:
+                text: "Login"
+                size_hint_y: None
+                height: 40
+                pos_hint: {"center_x": 0.5}
+                font_size: 24
+                font_name: 'open-sans.regular.ttf'
+                on_release: root.checkbox_login(save_email_switch); root.manager.transition.direction = "up"; root.loginBtn()
 
-            on_release:
-                root.manager.transition.direction = "right"
-                root.createBtn()
+            Button:
+                text: "Não tenho conta."
+                size_hint_y: None
+                height: 40
+                pos_hint: {"center_x": 0.5}
+                font_size: 18
+                font_name: 'open-sans.regular.ttf'
+                on_release:
+                    root.manager.transition.direction = "right"
+                    root.createBtn()
 
-        FloatLayout:
             Image:
                 source: 'ipesquisa2.png'
-                size_hint: None, None
-                size: dp(100), dp(100)
-                pos_hint: {"center_x": 0.5, "y": -0.1}
+                pos_hint: {"center_x": 0.5}
+                size_hint_y: None
+                height: 100
+                pos_hint: {"center_x": 0.5}
+
+
 
 
 <MainWindow>:
@@ -170,22 +198,43 @@
 
     BoxLayout:
         orientation: "vertical"
-        padding: 50
-
+        padding: 30
+        spacinng: 20
 
         Label:
-            id: tema_label  # Adicionando um id para referência no Python
+            id: tema_label
             text: "Tema Escuro"
             font_name: 'open-sans.semibold.ttf'
             size_hint: None, None
-            size: dp(10), dp(10)
-            pos_hint: {"center_x": 0.8}
+            size: 90, 50
+            pos_hint: {"center_y": 0.5, "right": 0.99}  # Centralizando verticalmente e alinhando à margem direita
+
+
         Switch:
             id: switch
-            pos_hint: {"x": 0.3, "top": 0}
+            size_hint_y: None
+            size_hint_x: None
+            height: 20
+            pos_hint: {"center_y": 0.5, "right": 1}  # Centralizando verticalmente e alinhando à margem direita
             active: True
-            on_active: root.atualizar_tema_label(*args)  # Chamando o método para atualizar o texto do tema
+            canvas:
+                Color:
+                    rgba: 0, 0, 0, 0 # Cor transparente para o retângulo de toque
+                Rectangle:
+                    size: self.size
+                    pos: self.pos
+            on_active: root.atualizar_tema_label(*args)
             on_active: root.tema_fundo(*args)
+
+        Label:
+            id: espaco_entre switch  # Adicionando um id para referência no Python
+            text: ""
+            font_name: 'open-sans.semibold.ttf'
+            size_hint: None, None
+            size_hint: None, None
+            size: 50, 50
+
+
 
         Button:
             text: "Nova Pesquisa"
@@ -202,26 +251,170 @@
             font_name: 'open-sans.regular.ttf'
             on_release: root.delete_data()
 
-        Button:
-            text: "Visualizar votos"
-            font_name: 'open-sans.regular.ttf'
-            on_release: root.visualizar_votos()
 
         Button:
             text: "Sair"
             font_name: 'open-sans.regular.ttf'
-            on_release: root.logout()
+            active: True
+            on_release: root.tema_login("tema_inicial");root.logout();switch.active = True
 
-<Color>:
-    texto_branco: [1, 1, 1, 1]  # Cor branca
-    texto_preto: [0, 0, 0, 1]  # Cor preta
+
 
 
 <PesquisaWindow>:
     BoxLayout:
         orientation: "vertical"
-        padding: 50
         font_name:'open-sans.regular.ttf'
+
+
+    GridLayout:
+        id: layout
+        cols: 1
+        spacing: 10
+        padding: 10
+
+        Label:
+            id: questionario
+            text: 'Questionário'
+            bold: True
+            size_hint_y: None
+            height: 30
+
+
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: None
+            height: 40
+            spacing: 10
+
+            Label:
+                id: idade
+                text: 'Idade:'
+                size_hint: None, None
+                size: 60, 30
+                pos_hint: {"center_y": 0.5}
+
+            Spinner:
+                id: idade_spinner
+                text: 'Selecione a sua idade'
+                values: ['16 a 18', '18 a 24', '25 a 34', '35 a 44', '45 a 54', '55 a 64', '65 ou mais']
+                size_hint_y: None
+                height: 40
+
+
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: None
+            height: 40
+            spacing: 10
+            Label:
+                id: genero
+                text: 'Gênero:'
+                size_hint: None, None
+                size: 62, 15
+                pos_hint: {"center_y": 0.5}
+            Spinner:
+                id: genero_spinner
+                text: 'Selecione o seu gênero'
+                values: ['Masculino', 'Feminino', 'Outro']
+                size_hint_y: None
+                height: 40
+
+        Label:
+            id: escolaridade
+            text: 'Escolaridade:'
+            size_hint: None, None
+            size: 100, 15
+        Spinner:
+            id: escolaridade_spinner
+            text: 'Selecione a sua escolaridade'
+            values: ['Ensino fundamental incompleto', 'Ensino fundamental completo', 'Ensino médio incompleto', 'Ensino médio completo', 'Ensino superior incompleto', 'Ensino superior completo']
+            size_hint_y: None
+            height: 40
+
+        Label:
+            id: renda
+            text: 'Renda mensal familiar:'
+            size_hint: None, None
+            size: 155, 15
+        Spinner:
+            id: renda_spinner
+            text: 'Selecione sua faixa de renda'
+            values: ['Até R$ 1.400', 'de R$ 1.400 a R$ 2.800','de R$ 2.800 a R$ 4.200', 'de R$ 4.200 a R$ 5.600', 'Acima de R$ 5.600']
+            size_hint_y: None
+            height: 40
+
+        Label:
+            id: pergunta1
+            text: 'Qual a melhor coisa que\n o governo fez em seu bairro?'
+            size_hint: None,None
+            size: 200, 20
+        TextInput:
+            id: pergunta1_input
+            hint_text: 'Selecione sua resposta'
+            size_hint_y: None
+            height: 50
+
+        Label:
+            id: pergunta2
+            text: 'Qual o principal problema\n hoje no seu bairro?'
+            size_hint: None,None
+            size: 175, 20
+        TextInput:
+            id: pergunta2_input
+            hint_text: 'Selecione sua resposta'
+            size_hint_y: None
+            height: 50
+
+        Label:
+            id: pergunta3
+            text: 'Você conhece a\nLuciana Gualhardo(Tia Lu)?'
+            size_hint: None,None
+            size: 190, 30
+        Spinner:
+            id: pergunta3_spinner
+            text: 'Selecione sua resposta'
+            values: ['Sim', 'Não']
+            size_hint_y: None
+            height: 40
+
+        Label:
+            id: pergunta4
+            text: 'Você conhece o Kadu da APAE?'
+            size_hint: None,None
+            size: 220, 10
+        Spinner:
+            id: pergunta4_spinner
+            text: 'Selecione sua resposta'
+            values: ['Sim', 'Não']
+            size_hint_y: None
+            height: 40
+
+
+
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: None
+            height: 40
+            spacing: 10
+
+            Button:
+                id: cancelar
+                text: 'Cancelar'
+                background_color: 1, 0, 0, 1
+                on_press: root.cancelar_pesquisa()
+
+            Button:
+                id: salvar
+                text: 'Salvar'
+                background_color: 0, 1, 0, 1
+                on_press: root.salvar_pesquisa()
+
+
+
+        Label:
+            id: contador_label
+            text: 'Nenhuma pesquisa realizada.'
 
 
 

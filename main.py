@@ -1,16 +1,18 @@
-from kivy.config import Config
-Config.set('graphics', 'width', '280')  # Definindo a largura da janela como 360 pixels
-Config.set('graphics', 'height', '560')  # Definindo a altura da janela como 640 pixels
+# from kivy.config import Config
+# Config.set('graphics', 'width', '280')  # Definindo a largura da janela como 360 pixels
+# Config.set('graphics', 'height', '540')  # Definindo a altura da janela como 640 pixels
 
 import sqlite3
-import pytz
+
 import configparser
+from matplotlib import pyplot as plt
+from openpyxl import Workbook
+from datetime import datetime
 from kivy.app import App
 from kivy.core.window import Window
 from kivy.lang import Builder
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
-from kivy.uix.dropdown import DropDown
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.properties import ObjectProperty
@@ -20,11 +22,9 @@ from kivy.graphics import Color, Rectangle
 from kivy.uix.spinner import Spinner
 from kivy.uix.textinput import TextInput
 from kivy.properties import StringProperty
-from matplotlib import pyplot as plt
-from openpyxl import Workbook
-from functools import partial
-from datetime import datetime
 from kivy.uix.boxlayout import BoxLayout
+import os
+from jnius import autoclass
 
 
 
@@ -37,14 +37,14 @@ class CreateAccountWindow(Screen):
     def __init__(self, usuario='', **kwargs):
         super(CreateAccountWindow, self).__init__(**kwargs)
         self.create_table_usuarios()
-
-        fuso_horario=pytz.timezone('America/Sao_Paulo')
-
-        # Obtenha a data e hora atual
         data_hora=datetime.now()
-        print("data e hora 45",data_hora)
 
-
+        print(os.getenv("JAVA_HOME"))
+    def exibir_senha_registrar(self,check_registrar):
+        if self.check_registrar.active:
+            self.ids.passw.password=False
+        else:
+            self.ids.passw.password=True
 
     def create_table_usuarios(self):
         self.connection = sqlite3.connect('usuarios.db')
@@ -56,29 +56,40 @@ class CreateAccountWindow(Screen):
                             )''')
         self.connection.commit()
 
+    def verifica_email_existente(self):
+        self.connection = sqlite3.connect('usuarios.db')
+        cursor = self.connection.cursor()
+        cursor.execute("SELECT email FROM usuarios WHERE email=?", (self.email.text,))
+        result = cursor.fetchone()
+        self.connection.close()
+        if result is not None:
+            return True
+        else:
+            return False
+
     def submit(self):
         if self.email.text != "" and self.email.text.count("@") == 1 and self.email.text.count(".") > 0:
             if self.password.text != "":
-                data_criacao=datetime.now()
-                self.data_formatada=data_criacao.strftime("%d-%m-%Y %H:%M:%S")
-                try:
-                    self.connection=sqlite3.connect('usuarios.db')
-                    cursor=self.connection.cursor()
-                    cursor.execute(
-                        "INSERT INTO usuarios VALUES (?, ?, ? )",
-                        (self.email.text,self.password.text,self.data_formatada)
-                        )
+                if self.verifica_email_existente() == False:
+                    self.create_table_usuarios()
+                    self.connection = sqlite3.connect('usuarios.db')
+                    cursor = self.connection.cursor()
+                    cursor.execute("INSERT INTO usuarios VALUES (?, ?, ?)", (self.email.text, self.password.text, datetime.now()))
                     self.connection.commit()
                     self.connection.close()
-                    App.get_running_app().root.get_screen("login").email.text=self.email.text
-                    print("Dados inseridos com sucesso")
-                    sm.current="login"
-                except sqlite3.Error as e:
-                    print("Erro ao inserir dados:",e)
+                    self.reset()
+                    sm.current = "login"
+                else:
+                    popup = Popup(title='Erro', content=Label(text='Email ja existe'), size_hint=(None, None), size=(250, 200))
+                    popup.open()
             else:
-                invalidForm(sm)
+                popup = Popup(title='Erro', content=Label(text='Insira uma senha'), size_hint=(None, None), size=(250, 200))
+                popup.open()
+
         else:
-            invalidForm(sm)
+            popup = Popup(title='Erro', content=Label(text='Preencha todos\nos campos corretamente'), size_hint=(None, None), size=(250, 200))
+            popup.open()
+
 #ok
 
     def login(self):
@@ -90,6 +101,9 @@ class CreateAccountWindow(Screen):
         self.email.text = ""
         self.password.text = ""
 #ok
+
+class ConfigWindow(Screen):
+    pass
 
 class LoginWindow(Screen):
     email = ObjectProperty(None)
@@ -119,50 +133,45 @@ class LoginWindow(Screen):
         cursor = self.connection.cursor()
         cursor.execute("SELECT * FROM ultimo_usuario")
         row = cursor.fetchone()
-        print("carregar_ultimo_usuario:", row)
         if row is not None:
+            self.email.text=""
             self.email.text = row[1]
             self.connection.close()
 
-    def salvar_email_toggle(self,switch):
+    def checkbox_login(self,switch):
         if switch.active:
-            print("Email será salvo")
-            # App.get_running_app().atualizar_ultimo_usuario()  # Atualiza o último usuário no banco de dados
             App.get_running_app().root.get_screen("login").atualizar_ultimo_usuario()
         else:
-            # App.get_running_app().deletar_ultimo_usuario()  # Deleta o último usuário do banco de dados
-            App.get_running_app().root.get_screen("login").deletar_ultimo_usuario()
+            App.get_running_app().root.get_screen("login").atualizar_ultimo_usuario()
 
-            print("Email não será salvo")
-
+    def exibir_senha(self,switch):
+        if switch.active:
+            self.ids.password.password = False
+        else:
+            self.ids.password.password = True
 
     def atualizar_ultimo_usuario(self):
         if self.email.text.strip() != '':
             id="1"
-            print("atualizar_ultimo_usuario:", self.email.text.strip())
             self.connection = sqlite3.connect('ultimo_usuario.db')
             cursor = self.connection.cursor()
             cursor.execute("DELETE FROM ultimo_usuario")
             cursor.execute("INSERT INTO ultimo_usuario VALUES (?, ?)", (id,self.email.text.strip(),))
             self.connection.commit()
             self.connection.close()
-            print("Ultimo usuario atualizado com sucesso")
 
 
     def deletar_ultimo_usuario(self):
-        print("deletar_ultimo_usuario 152")
         self.connection = sqlite3.connect('ultimo_usuario.db')
         cursor = self.connection.cursor()
         cursor.execute("DELETE FROM ultimo_usuario WHERE id = ?",(1,))
         self.connection.commit()
         self.connection.close()
-        print("Ultimo usuario deletado com sucesso")
-    
+
     def loginBtn(self):
         email = self.email.text.strip()
         password = self.password.text.strip()
         self.usuario = email
-        print("email:", email, "password:", password)
         self.manager.add_widget(PesquisaWindow(usuario=self.usuario))
         # passa o valor de usuario para main
         main_window = self.manager.get_screen("main")
@@ -178,13 +187,11 @@ class LoginWindow(Screen):
                 if result:
                     MainWindow.current = email
                     self.reset()
-                    print("Login bem-sucedido")
                     sm.current = "main"
                 else:
                     invalidLogin()
             except sqlite3.Error as e:
-                print("Erro ao executar a consulta:", e)
-                # Trate o erro conforme necessário
+                print(e)
         else:
             invalidForm(sm)
 
@@ -208,98 +215,110 @@ class MainWindow(Screen):
 
     def __init__(self, **kwargs):
         super(MainWindow, self).__init__(**kwargs)
+
+
 #ok
     def logout(self):
         MainWindow.current = ""
         sm.current = "login"
         if isinstance(sm.current_screen,LoginWindow):
-            print("logout clicado chamando carregar_ultimo_usuario")
             sm.current_screen.carregar_ultimo_usuario()
 
 
-
     def deletar_ultimo_usuario(self):
-        print("deletar_ultimo_usuario 236")
         self.connection = sqlite3.connect('ultimo_usuario.db')
         cursor = self.connection.cursor()
         cursor.execute("DELETE FROM ultimo_usuario WHERE id = ?",(1,))
         self.connection.commit()
         self.connection.close()
-        print("Ultimo usuario deletado com sucesso")
+
+
+    def tema_login(self,id):
+        if id == "tema_inicial":
+            Window.clearcolor=[0,0,0,1]  # Define o fundo escuro (RGB: 1, 1, 1)
+            self.texto_branco()  # Se o valor for verdadeiro (Switch está ativado)
 
     def tema_fundo(self,switch,value):
-        if switch.active:  # Se o valor for verdadeiro (Switch está ativado)
-            Window.clearcolor=[0,0,0,1]  # Define o fundo azul claro (RGB: 1, 1, 1)
-            self.texto_branco()  # Chama o método para alterar a cor do texto para branco
-        else:  # Se o valor for falso (Switch está desativado)
-            Window.clearcolor=[236,236,236,1]  # Define o fundo como preto (RGB: 0, 0, 0)
-            self.texto_preto()  # Chama o método para alterar a cor do texto para preto
-
+        if switch.active:
+            Window.clearcolor=[0,0,0,1]
+            self.texto_branco()
+        else:
+            Window.clearcolor=[1,1,1,1]
+            self.texto_preto()
 
         App.get_running_app().root.get_screen("pesquisa").tema_fundo(switch,value)
 
     def texto_preto(self):
-        for widget in self.children[0].children:  # Percorre todos os widgets no layout
-            if isinstance(widget,Label):
-                widget.color=[0,0,0,1]  # Define a cor do texto como preto
+        for widget in self.children:
+            if isinstance(widget,Label) or isinstance(widget,Spinner):
+                widget.color=[0,0,0,1]  # Define a cor do texto do Label e Spinner como preto
+            elif isinstance(widget,Button):
+                widget.color=[1,1,1,1]  # Define a cor do texto do Button como branco
 
     def texto_branco(self):
-        for widget in self.children[0].children:  # Percorre todos os widgets no layout
-            if isinstance(widget, Label) or isinstance(widget, Button):
-                widget.color = [1, 1, 1, 1]  # Define a cor do texto como branco
+        for widget in self.children:
+            if isinstance(widget,Label) or isinstance(widget,Spinner):
+                widget.color=[1,1,1,1]  # Define a cor do texto do Label e Spinner como branco
+            elif isinstance(widget,Button):
+                widget.color=[1,1,1,1]  # Define a cor do texto do Button como branco
+
 
     def atualizar_tema_label(self,switch,value):
         if switch.active:
             self.ids.tema_label.text="Tema Escuro"
+            self.ids.tema_label.color=[1,1,1,1]
         else:
             self.ids.tema_label.text="Tema Claro"
+            self.ids.tema_label.color=[0,0,0,1]
 
 
     def nova_pesquisa(self):
-        print("Abrindo nova pesquisa...")
-        print("self.email 133: ",self.email)
         sm.current='pesquisa'
         #envia o valor de self.email para a tela de pesquisa
         App.get_running_app().root.get_screen("pesquisa").usuario = self.email
 
+    def obter_pasta_downloads():
+        Environment=autoclass('android.os.Environment')
+        return Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+
     def export_data(self):
-        print("Exportando dados...")
-
         try:
-            # Conectar ao banco de dados
-            connection=sqlite3.connect('votos.db')
+            connection=sqlite3.connect('pesquisa.db')
             cursor=connection.cursor()
-
-            # Executar uma consulta SQL para selecionar todos os registros da tabela 'votos'
-            cursor.execute('SELECT * FROM votos')
+            cursor.execute('SELECT * FROM pesquisa')
             rows=cursor.fetchall()
 
             # Criar um novo arquivo Excel (xlsx)
-            workbook=Workbook()  # Aqui está a importação correta do Workbook
+            workbook=Workbook()
 
             # Adicionar uma planilha ao arquivo Excel
             sheet=workbook.active
 
             # Adicionar os cabeçalhos das colunas
-            sheet.append(['ID','Faixa etária','Genero','Escolaridade','Renda','Intenção de Voto','Usuario'])
+            sheet.append(['ID','Faixa etária','Genero','Escolaridade','Renda','Governo fez','O bairro precisa','Conhece Luciana',"Conhece Kadu" , 'Usuario', 'Data'])
 
             # Adicionar os dados do banco de dados ao arquivo Excel
             for row in rows:
                 sheet.append(row)
 
-            # Salvar o arquivo Excel
-            workbook.save(filename='votos.csv')
-            workbook.save(filename='votos.xlsx')
+                # Salvar o arquivo Excel no diretório do aplicativo
+            file_path=os.path.join(os.getcwd(),'pesquisa.xlsx')
+            workbook.save(filename=file_path)
 
-            # Fechar o cursor e a conexão com o banco de dados
+            # Obter o diretório de downloads
+            pasta_downloads=obter_pasta_downloads()
+
+            # Salvar o arquivo Excel na pasta de downloads
+            download_file_path=os.path.join(pasta_downloads,'pesquisa.xlsx')
+            workbook.save(filename=download_file_path)
+
             cursor.close()
             connection.close()
 
             # Informar ao usuário que os dados foram exportados
-            # self.show_message("Sucesso","Os dados foram exportados\n para votos.xlsx")
             btn_fechar=Button(text='Fechar',size_hint=(None,None),size=(200,50),pos_hint={'center_x':0.5})
             content=BoxLayout(orientation='vertical')
-            content.add_widget(Label(text="Os dados foram exportados\n para votos.xlsx"))
+            content.add_widget(Label(text="Os dados foram exportados para pesquisa.xlsx"))
             content.add_widget(btn_fechar)
 
             popup=Popup(title='Sucesso',content=content,size_hint=(None,None),size=(250,200))
@@ -307,11 +326,11 @@ class MainWindow(Screen):
             popup.open()
 
         except sqlite3.Error as e:
-            # Em caso de erro, mostrar uma mensagem de erro
-            self.show_message("Erro",f"Ocorreu um erro ao\nexportar os dados: {e}")
+            self.show_message("Erro",f"Ocorreu um erro ao exportar os dados: {e}")
+
+
 
     def show_message(self,title,message):
-        # Criar e exibir um popup com a mensagem
         content=BoxLayout(orientation='vertical')
         content.add_widget(Label(text=message))
 
@@ -320,46 +339,32 @@ class MainWindow(Screen):
 
 
     def delete_data(self):
-        print("Apagando dados...")
-        # Criar o conteúdo do Popup
         content=BoxLayout(orientation='vertical')
-
-        # Adiciona o texto acima dos botões
         content.add_widget(Label(text="Tem certeza que deseja\napagar todos os dados?"))
 
-        # Layout para os botões (horizontal)
         button_layout=BoxLayout(orientation='horizontal')
 
-        # Botões de confirmação e cancelamento
-        confirm_button=Button(text='Confirmar',background_color=[0,1,0,1])
-        cancel_button=Button(text='Cancelar',background_color=[1,0,0,1])
+        confirm_button=Button(text='Confirmar',background_color=[0,1,0,1], size_hint=(None,None),size=(111,50))
+        cancel_button=Button(text='Cancelar',background_color=[1,0,0,1], size_hint=(None,None),size=(111,50))
 
-        # Associa as ações aos botões
         confirm_button.bind(on_press=self.confirm_delete)
         cancel_button.bind(on_press=self.dismiss_popup)
 
-        # Adiciona os botões ao layout horizontal
         button_layout.add_widget(confirm_button)
         button_layout.add_widget(cancel_button)
 
-        # Adiciona o layout dos botões ao conteúdo do Popup
         content.add_widget(button_layout)
 
-        # Cria e mostra o Popup
-        self.popup=Popup(title='Excluir Dados',content=content,size_hint=(None,None),size=(300,200))
+        self.popup=Popup(title='Excluir Dados',content=content,size_hint=(None,None),size=(250,200))
         self.popup.open()
 #ok
 
     def confirm_delete(self,instance):
-        # Código para apagar os dados do votos.db
-        self.connection=sqlite3.connect('votos.db')
+        self.connection=sqlite3.connect('pesquisa.db')
         cursor=self.connection.cursor()
-        cursor.execute('DELETE FROM votos')
+        cursor.execute('DELETE FROM pesquisa')
         self.connection.commit()
         self.connection.close()
-
-        print("Apagando dados...")
-        # Fechar o Popup após a confirmação
         self.dismiss_popup(instance)
 #ok
 
@@ -367,182 +372,102 @@ class MainWindow(Screen):
         self.popup.dismiss()
 #ok
 
-    def visualizar_votos(self):
-        self.connection=sqlite3.connect('votos.db')
-        cursor=self.connection.cursor()
-        cursor.execute('SELECT COUNT(*), voto FROM votos GROUP BY voto')
-        rows=cursor.fetchall()
-
-        # Preparar os dados para o gráfico
-        labels=[row[1] for row in rows]
-        counts=[row[0] for row in rows]
-
-        # Criar o gráfico de barras usando Matplotlib
-        plt.bar(labels,counts)
-        plt.xlabel('Voto')
-        plt.ylabel('Número de Votos')
-        plt.title('Número de Votos por Voto')
-
-        # Adiciona botões de filtro
-        self.add_filter_buttons()
-
-        # Exibir o gráfico
-        plt.show()
-#ok
-
-
-    def add_filter_buttons(self):
-        plt.gca().figure.canvas.manager.toolbar.pan()
-        plt.gca().figure.canvas.manager.toolbar.zoom()
-        plt.gca().figure.canvas.manager.toolbar.home()
-        plt.gca().figure.canvas.manager.toolbar.back()
-        plt.gca().figure.canvas.manager.toolbar.forward()
-
-        plt.gca().figure.canvas.manager.toolbar.update()
-        plt.gca().figure.canvas.draw()
-
-
-    def mostrar_botoes_filtro(self):
-        # Criar um layout para os botões
-        layout=GridLayout(cols=2,spacing=10,padding=(50,10))
-
-        # Botão para filtrar por idade
-        btn_idade=Button(text='Filtrar por Idade',size_hint=(None,None),size=(150,40))
-        btn_idade.bind(on_release=self.show_idade_dropdown)
-        layout.add_widget(btn_idade)
-
-        # Botão para filtrar por gênero
-        btn_genero=Button(text='Filtrar por Gênero',size_hint=(None,None),size=(150,40))
-        btn_genero.bind(on_release=self.show_genero_dropdown)
-        layout.add_widget(btn_genero)
-
-        # Criar um popup para exibir os botões
-        popup=Popup(title='Filtros',content=layout,size_hint=(None,None),size=(300,150))
-        popup.open()
-
-    def show_idade_dropdown(self,instance):
-        dropdown=DropDown()
-
-        # Adicionar opções de idade ao dropdown
-        opcoes_idade=['16-18','18-24','25-34','35-44','45-54','55-64','65 ou mais']
-        for idade in opcoes_idade:
-            btn=Button(text=idade,size_hint_y=None,height=40)
-            btn.bind(on_release=lambda btn:self.filtrar_por_idade(btn.text))
-            dropdown.add_widget(btn)
-
-        # Mostrar o dropdown abaixo do botão de idade
-        dropdown.open(instance)
-
-    def show_genero_dropdown(self,instance):
-        dropdown=DropDown()
-
-        # Adicionar opções de gênero ao dropdown
-        opcoes_genero=['Masculino','Feminino','Outro/Prefiro não responder']
-        for genero in opcoes_genero:
-            btn=Button(text=genero,size_hint_y=None,height=40)
-            btn.bind(on_release=lambda btn:self.filtrar_por_genero(btn.text))
-            dropdown.add_widget(btn)
-
-        # Mostrar o dropdown abaixo do botão de gênero
-        dropdown.open(instance)
-
-    def filtrar_por_idade(self,idade):
-        # Implementar a lógica para filtrar os votos por idade
-        print(f"Filtrar por idade: {idade}")
-
-    def filtrar_por_genero(self,genero):
-        # Implementar a lógica para filtrar os votos por gênero
-        print(f"Filtrar por gênero: {genero}")
 
 class PesquisaWindow(Screen):
     def __init__(self, usuario='', **kwargs):
         super(PesquisaWindow, self).__init__(**kwargs)
 
         self.usuario = usuario
-        self.connection = sqlite3.connect('votos.db')
+        self.connection = sqlite3.connect('pesquisa.db')
         self.create_table()
-
-        self.layout = GridLayout(cols=1, spacing=10, padding=10)
-        self.layout.add_widget(Label(text='Questionário', bold=True))
-
-
-        self.layout.add_widget(Label(text='Idade:',size_hint=(None, None),size=(50, 30)))
-        self.idade_input = Spinner(text='Selecione a sua faixa etária', values=['16-18', '18-24', '25-34', '35-44', '45-54', '55-64', '65 ou mais'],size_hint_y=None, height=40)
-        self.layout.add_widget(self.idade_input)
-
-        self.layout.add_widget(Label(text='Gênero:',size_hint=(None, None),size=(62, 15)))
-        self.genero_input = Spinner(text='Selecione o seu gênero', values=['Masculino', 'Feminino', 'Outro/Prefiro não responder'],size_hint_y=None, height=40)
-        self.layout.add_widget(self.genero_input)
-
-        self.layout.add_widget(Label(text='Escolaridade:',size_hint=(None, None),size=(100, 15)))
-        self.escolaridade_input = Spinner(text='Selecione a sua escolaridade', values=['Ensino fundamental incompleto', 'Ensino fundamental completo', 'Ensino médio incompleto', 'Ensino médio completo', 'Ensino superior incompleto', 'Ensino superior completo'],size_hint_y=None, height=40)
-        self.layout.add_widget(self.escolaridade_input)
-
-        self.layout.add_widget(Label(text='Renda mensal familiar:',size_hint=(None, None),size=(160, 15)))
-        self.renda_input = Spinner(text='Selecione sua faixa de renda', values=['Até R$ 1.400', 'de R$ 1.400 a R$ 2.800','de R$ 2.800 a R$ 4.200', 'de R$ 4.200 a R$ 5.600', 'Acima de R$ 5.600'],size_hint_y=None, height=40)
-        self.layout.add_widget(self.renda_input)
-
-        self.layout.add_widget(Label(text='Intenção de voto:',size_hint=(None, None),size=(120, 15)))
-        self.voto_input = Spinner(text='Selecione sua intenção de voto', values=['Candidato A', 'Candidato B', 'Candidato C', 'Indeciso', 'Nenhum (branco/nulo)'],size_hint_y=None, height=40)
-        self.layout.add_widget(self.voto_input)
-
-        self.botao_salvar = Button(text='Salvar',background_color=[0,1,0,1],size_hint=(None, None),size=(150, 40))
-        self.botao_salvar.bind(on_press=self.salvar_voto)
-        self.layout.add_widget(self.botao_salvar)
-
-        self.botao_cancelar = Button(text='Cancelar', background_color=[1,0,0,1],size_hint=(None, None),size=(150, 40))
-        self.botao_cancelar.bind(on_press=self.cancelar_pesquisa)
-        self.layout.add_widget(self.botao_cancelar)
-
-        self.contador_label = Label(text='Nenhuma pesquisa realizada.')
-        self.layout.add_widget(self.contador_label)
-
         self.update_contador()
-        self.add_widget(self.layout)
+        self.atualizar_tema_pesquisa('True')
 
     def tema_fundo(self,switch,value):
-        if switch.active:  # Se o valor for verdadeiro (Switch está ativado)
-            Window.clearcolor=[0,0,0,1]  # Define o fundo azul claro (RGB: 1, 1, 1)
-            self.texto_branco()  # Chama o método para alterar a cor do texto para branco
+        self.atualizar_tema_pesquisa(value)
+        if switch.active:
+            Window.clearcolor=[0,0,0,1]
         else:
-            Window.clearcolor=[1,1,1,1]  # Define o fundo branco (RGB: 1, 1, 1)
-            self.texto_preto()  # Chama o método para alterar a cor do texto para preto
+            Window.clearcolor=[1,1,1,1]
 
     def texto_preto(self):
-        for widget in self.children[0].children:  # Percorre todos os widgets no layout
-            if isinstance(widget,Label):
-                widget.color=[0,0,0,1]  # Define a cor do texto como preto
-
+        for widget in self.ids.layout.children:  # Percorre todos os widgets no layout
+            if isinstance(widget,Label) or isinstance(widget,Spinner):
+                widget.color=[0,0,0,1]  # Define a cor do texto do Label e Spinner como preto
+            elif isinstance(widget,Button):
+                widget.color=[1,1,1,1]  # Define a cor do texto do Button como branco
 
     def texto_branco(self):
-        for widget in self.children[0].children:  # Percorre todos os widgets no layout
-            if isinstance(widget, Label) or isinstance(widget, Button):
-                widget.color = [1, 1, 1, 1]  # Define a cor do texto como branco
+        for widget in self.ids.layout.children:  # Percorre todos os widgets no layout
+            if isinstance(widget,Label) or isinstance(widget,Spinner):
+                widget.color=[1,1,1,1]  # Define a cor do texto do Label e Spinner como branco
+            elif isinstance(widget,Button):
+                widget.color=[1,1,1,1]
 
-    def atualizar_tema_label(self,switch,value):
-        if switch.active:
-            self.ids.tema_label.text="Tema Escuro"
-        else:
-            self.ids.tema_label.text="Tema Claro"
+    # Define a cor do texto do Button como branco
 
+    def atualizar_tema_pesquisa(self,value):
+        if value == False:
+            self.ids.questionario.color=[0,0,0,1]
+            self.ids.idade.color=[0,0,0,1]
+            self.ids.genero.color=[0,0,0,1]
+            self.ids.escolaridade.color=[0,0,0,1]
+            self.ids.renda.color=[0,0,0,1]
+            self.ids.pergunta1.color=[0,0,0,1]
+            self.ids.pergunta2.color=[0,0,0,1]
+            self.ids.pergunta3.color=[0,0,0,1]
+            self.ids.pergunta4.color=[0,0,0,1]
+            self.ids.contador_label.color=[0,0,0,1]
+            self.ids.idade_spinner.color=[1,1,1,1]
+            self.ids.genero_spinner.color=[1,1,1,1]
+            self.ids.escolaridade_spinner.color=[1,1,1,1]
+            self.ids.renda_spinner.color=[1,1,1,1]
+        elif value == True:
+            self.ids.questionario.color=[1,1,1,1]
+            self.ids.idade.color=[1,1,1,1]
+            self.ids.genero.color=[1,1,1,1]
+            self.ids.escolaridade.color=[1,1,1,1]
+            self.ids.renda.color=[1,1,1,1]
+            self.ids.pergunta1.color=[1,1,1,1]
+            self.ids.pergunta2.color=[1,1,1,1]
+            self.ids.pergunta3.color=[1,1,1,1]
+            self.ids.pergunta4.color=[1,1,1,1]
+            self.ids.contador_label.color=[1,1,1,1]
+            self.ids.idade_spinner.color=[1,1,1,1]
+            self.ids.genero_spinner.color=[1,1,1,1]
+            self.ids.escolaridade_spinner.color=[1,1,1,1]
+            self.ids.renda_spinner.color=[1,1,1,1]
+            self.ids.pergunta1_input.color=[1,1,1,1]
+            self.ids.pergunta2_input.color=[1,1,1,1]
+            self.ids.pergunta3_spinner.color=[1,1,1,1]
+            self.ids.pergunta4_spinner.color=[1,1,1,1]
 
-    def salvar_voto(self,instance):
-        print("self.usuario em salvar voto 416 :",self.usuario)
-        idade=self.idade_input.text
-        genero=self.genero_input.text
-        escolaridade=self.escolaridade_input.text
-        renda=self.renda_input.text
-        voto=self.voto_input.text
+    def salvar_pesquisa(self):
+        idade=self.ids.idade_spinner.text
+        genero=self.ids.genero_spinner.text
+        escolaridade=self.ids.escolaridade_spinner.text
+        renda=self.ids.renda_spinner.text
+        pergunta1=self.ids.pergunta1_input.text
+        pergunta2=self.ids.pergunta2_input.text
+        pergunta3=self.ids.pergunta3_spinner.text
+        pergunta4=self.ids.pergunta4_spinner.text
         usuario=self.usuario
+        data=datetime.now().strftime("%d/%m/%Y %H:%M:%S")
 
         # Verifica se todos os campos foram preenchidos
-        if idade != 'Selecione a sua faixa etária' and genero != 'Selecione o seu gênero' and escolaridade != 'Selecione a sua escolaridade' and renda != 'Selecione sua faixa de renda' and voto != 'Selecione sua intenção de voto':
+        if idade != 'Selecione a sua idade' \
+                and genero != 'Selecione o seu gênero' \
+                and escolaridade != 'Selecione a sua escolaridade' \
+                and renda != 'Selecione sua faixa de renda' \
+                and pergunta1 != '' \
+                and pergunta2 != '' \
+                and pergunta3 != 'Selecione sua resposta' \
+                and pergunta4 != 'Selecione sua resposta':
             try:
-                print(idade,genero,escolaridade,renda,voto,usuario)
                 cursor=self.connection.cursor()
                 cursor.execute(
-                    '''INSERT INTO votos (idade, genero, escolaridade, renda, voto, usuario)
-                                  VALUES (?, ?, ?, ?, ?, ?)''',(idade,genero,escolaridade,renda,voto,usuario)
+                    '''INSERT INTO pesquisa (idade, genero, escolaridade, renda, pergunta1, pergunta2, pergunta3, pergunta4, usuario, data)
+                                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',(idade,genero,escolaridade,renda,pergunta1,pergunta2,pergunta3,pergunta4,usuario,data)
                     )
                 self.connection.commit()
                 self.update_contador()
@@ -561,36 +486,29 @@ class PesquisaWindow(Screen):
             popup.open()
 
     def update_contador(self):
-        print("update_contador 450")
         cursor = self.connection.cursor()
-        cursor.execute('SELECT COUNT(*) FROM votos')
+        cursor.execute('SELECT COUNT(*) FROM pesquisa')
         count = cursor.fetchone()[0]
-        self.contador_label.text = f'{count} pesquisas realizadas.'
+        self.ids.contador_label.text=f'{count} pesquisas realizadas.'
 
     def mostrar_popup(self,title,message):
-        # Conteúdo do pop-up
         content=BoxLayout(orientation='vertical')
         content.add_widget(Label(text='Pesquisa gravada com sucesso!'))
         btn_encerrar_pesquisas=Button(text='Encerrar Pesquisas',background_color=[1,0,0,1])
         btn_encerrar_pesquisas.bind(on_release=self.encerrar_pesquisas)
         btn_nova_pesquisa=Button(text='Nova Pesquisa', background_color=[0,1,0,1])
         btn_nova_pesquisa.bind(on_release=self.nova_pesquisa_btn)
-        # Adicionando botões ao layout
+
         content.add_widget(btn_encerrar_pesquisas)
         content.add_widget(btn_nova_pesquisa)
 
-        # Criando o pop-up
         popup=Popup(title='Sucesso',content=content,size_hint=(None,None),size=(250,200))
 
-        # Vinculando a função de fechar ao pressionar os botões
         btn_encerrar_pesquisas.bind(on_press=popup.dismiss)
         btn_nova_pesquisa.bind(on_press=popup.dismiss)
-
-        # Abrindo o pop-up
         popup.open()
 
     def encerrar_pesquisas(self,instance):
-        print("encerrar pesquisas 482")
         # Redireciona para a MainWindow
         self.manager.current="main"
 
@@ -600,14 +518,17 @@ class PesquisaWindow(Screen):
 
 #ok
     def limpar_inputs(self):
-        self.idade_input.text = 'Selecione a sua faixa etária'
-        self.genero_input.text = 'Selecione o seu gênero'
-        self.escolaridade_input.text = 'Selecione a sua escolaridade'
-        self.renda_input.text = 'Selecione sua faixa de renda'
-        self.voto_input.text = 'Selecione sua intenção de voto'
+        self.ids.idade_spinner.text='Selecione a sua idade'
+        self.ids.genero_spinner.text='Selecione o seu gênero'
+        self.ids.escolaridade_spinner.text='Selecione a sua escolaridade'
+        self.ids.renda_spinner.text='Selecione sua faixa de renda'
+        self.ids.pergunta1_input.text=''
+        self.ids.pergunta2_input.text=''
+        self.ids.pergunta3_spinner.text='Selecione sua resposta'
+        self.ids.pergunta4_spinner.text='Selecione sua resposta'
 #ok
 
-    def cancelar_pesquisa(self, instance):
+    def cancelar_pesquisa(self):
         self.limpar_inputs()
         self.update_contador()
         sm.current = "main"
@@ -615,36 +536,22 @@ class PesquisaWindow(Screen):
 
     def create_table(self):
         cursor = self.connection.cursor()
-        cursor.execute('''CREATE TABLE IF NOT EXISTS votos (
+        cursor.execute('''CREATE TABLE IF NOT EXISTS pesquisa (
                             id INTEGER PRIMARY KEY AUTOINCREMENT,
                             idade TEXT,
                             genero TEXT,
                             escolaridade TEXT,
                             renda TEXT,
-                            voto TEXT,
-                            usuario TEXT
+                            pergunta1 TEXT,
+                            pergunta2 TEXT,
+                            pergunta3 TEXT,
+                            pergunta4 TEXT,
+                            usuario TEXT,
+                            data TEXT
                             )''')
 
         self.connection.commit()
 #ok
-
-    def visualizar_votos(self, instance):
-        cursor = self.connection.cursor()
-        cursor.execute('SELECT COUNT(*), voto FROM votos GROUP BY voto')
-        rows = cursor.fetchall()
-
-        # Preparar os dados para o gráfico
-        labels = [row[1] for row in rows]
-        counts = [row[0] for row in rows]
-
-        # Criar o gráfico de barras usando Matplotlib
-        plt.bar(labels, counts)
-        plt.xlabel('Voto')
-        plt.ylabel('Número de Votos')
-        plt.title('Número de Votos por Voto')
-
-        # Exibir o gráfico
-        plt.show()
 #ok
 
 class WindowManager(ScreenManager):
@@ -687,17 +594,22 @@ def invalidForm(sm):
 
 kv = Builder.load_file("my.kv")
 sm = WindowManager()
-screens = [LoginWindow(name="login"), CreateAccountWindow(name="create"), MainWindow(name="main"), PesquisaWindow(name="pesquisa")]
+screens = [LoginWindow(name="login"), CreateAccountWindow(name="create"), MainWindow(name="main"),
+           PesquisaWindow(name="pesquisa"), ConfigWindow(name="config")]
 
 for screen in screens:
     sm.add_widget(screen)
 
 sm.current = "login"
 
+
+
 class MyMainApp(App):
     def build(self):
         self.conn=sqlite3.connect('ultimo_usuario.db')
         return sm
+
+
 
 if __name__ == "__main__":
     MyMainApp().run()
