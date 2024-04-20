@@ -36,7 +36,7 @@ version = 0.1
 # version.filename = %(source.dir)s/main.py
 
 # Dependências do seu aplicativo
-requirements = python3,kivy, matplotlib, cython, sqlite3, openpyxl, datetime, configparser, pytz
+requirements = python3,kivy, matplotlib, cython, sqlite3, openpyxl, datetime, configparser, os
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
@@ -46,7 +46,7 @@ requirements = python3,kivy, matplotlib, cython, sqlite3, openpyxl, datetime, co
 #presplash.filename = %(source.dir)s/n3desenvolvimento.png
 
 # Icone do aplicativo
-#icon.filename = %(source.dir)s/ipesquisa.png
+icon.filename = %(source.dir)s/ipesquisa.png
 
 # (list) Supported orientations
 # Valid options are: landscape, portrait, portrait-reverse or landscape-reverse
@@ -66,7 +66,7 @@ orientation = portrait
 osx.python_version = 3
 
 # Kivy version to use
-osx.kivy_version = 1.9.1
+osx.kivy_version = 2.3.0
 
 #
 # Android specific
@@ -100,10 +100,10 @@ android.permissions =android.permission.INTERNET, READ_EXTERNAL_STORAGE, WRITE_E
 #android.features = android.hardware.usb.host
 
 # Target Android
-android.api = 32
+android.api = 34
 
 # Versão mínima do Android que o aplicativo suporta
-android.minapi = 22
+android.minapi = 24
 
 # (int) Android SDK version to use
 #android.sdk = 20
