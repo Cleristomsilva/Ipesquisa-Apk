@@ -16,13 +16,14 @@ source.dir = .
 source.include_exts = py,kv,db,png,ttf,csv,xlsx,cfg
 
 # Lista de inclusoes usando correspondencia de padrao
-source.include_patterns = *.*
+#source.include_patterns = *.*
 
 # (list) Source files to exclude (let empty to not exclude anything)
 #source.exclude_exts = spec
 
 # (list) List of directory to exclude (let empty to not exclude anything)
-#source.exclude_dirs = tests, bin, venv
+#source.exclude_dirs = tests, bin, venv (linha original)
+source.exclude_dirs = temp, bin, .venv, __pycache__
 
 # (list) List of exclusions using pattern matching
 # Do not prefix with './'
@@ -36,14 +37,14 @@ version = 0.1
 # version.filename = %(source.dir)s/main.py
 
 # Dependências do seu aplicativo
-requirements = python3,kivy, matplotlib, cython, sqlite3, openpyxl, datetime, configparser, os
+requirements =python3,kivy==2.3.0,cython==3.0.10, sqlite3, openpyxl, pyjnius, et_xmlfile,mysql-connector-python
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
 # requirements.source.kivy = ../../kivy
 
 #Inicialização do aplicativo
-#presplash.filename = %(source.dir)s/n3desenvolvimento.png
+presplash.filename = %(source.dir)s/n3desenvolvimento.png
 
 # Icone do aplicativo
 icon.filename = %(source.dir)s/ipesquisa.png
@@ -66,14 +67,14 @@ orientation = portrait
 osx.python_version = 3
 
 # Kivy version to use
-osx.kivy_version = 2.3.0
+osx.kivy_version = 1.9.1
 
 #
 # Android specific
 #
 
 # (bool) Indicate if the application should be fullscreen or not
-fullscreen = 1
+fullscreen = 0
 
 # (string) Presplash background color (for android toolchain)
 # Supported formats are: #RRGGBB #AARRGGBB or one of the following names:
@@ -94,13 +95,14 @@ fullscreen = 1
 
 # (list) Permissions
 # (See https://python-for-android.readthedocs.io/en/latest/buildoptions/#build-options-1 for all the supported syntaxes and properties)
-android.permissions =android.permission.INTERNET, READ_EXTERNAL_STORAGE, WRITE_EXTERNAL_STORAGE
+#android.permissions =android.permission.INTERNET, READ_EXTERNAL_STORAGE, WRITE_EXTERNAL_STORAGE (linha original)
+android.permissions = INTERNET, READ_EXTERNAL_STORAGE,WRITE_EXTERNAL_STORAGE
 
 # (list) features (adds uses-feature -tags to manifest)
 #android.features = android.hardware.usb.host
 
 # Target Android
-android.api = 34
+android.api = 33
 
 # Versão mínima do Android que o aplicativo suporta
 android.minapi = 24
@@ -109,7 +111,7 @@ android.minapi = 24
 #android.sdk = 20
 
 # (str) Android NDK version to use
-#android.ndk = 23b
+android.ndk = 25b
 
 # (int) Android NDK API to use. This is the minimum API your app will support, it should usually match android.minapi.
 #android.ndk_api = 21
@@ -449,4 +451,3 @@ warn_on_root = 1
 #    Then, invoke the command line with the "demo" profile:
 #
 #buildozer --profile demo android debug
-
