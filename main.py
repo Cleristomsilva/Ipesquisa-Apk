@@ -592,7 +592,7 @@ class MainWindow(Screen):
             btn_voltar.bind(on_press=popup.dismiss)
             btn_voltar.bind(on_press=self.popup_senha)
             popup.open()
-        elif senha != "nivel3tidev":
+        elif senha != "crie_sua_senha_admin":
             altura_popup=Window.height * 0.3
             largura_popup=Window.width * 0.8
             content = BoxLayout(orientation='vertical')
